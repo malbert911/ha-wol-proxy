@@ -17,6 +17,7 @@ class ServiceConfig:
     mac_address: str
     wake_timeout: int = 60
     health_check_interval: int = 2
+    connection_timeout: int = 10
     protocol: str = "tcp"
     
     def __post_init__(self):
@@ -46,6 +47,9 @@ class ServiceConfig:
         
         if not (1 <= self.health_check_interval <= 60):
             raise ValueError("health_check_interval must be between 1 and 60 seconds")
+        
+        if not (1 <= self.connection_timeout <= 60):
+            raise ValueError("connection_timeout must be between 1 and 60 seconds")
 
 class Config:
     """Main configuration class"""

@@ -16,6 +16,7 @@ class TCPProxy:
         self.target_host = target_host
         self.target_port = target_port
         self.active_connections = 0
+        self.connection_timeout = 10  # Default timeout
     
     async def handle_client(self, client_reader: asyncio.StreamReader, client_writer: asyncio.StreamWriter):
         """Handle a client connection"""
@@ -28,10 +29,15 @@ class TCPProxy:
         try:
             self.active_connections += 1
             
-            # Connect to target
-            target_reader, target_writer = await asyncio.open_connection(
-                self.target_host, self.target_port
-            )
+            # Connect to target with timeout
+            try:
+                target_reader, target_writer = await asyncio.wait_for(
+                    asyncio.open_connection(self.target_host, self.target_port),
+                    timeout=self.connection_timeout
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout connecting to target {self.target_host}:{self.target_port}")
+                return
             
             logger.debug(f"Connected to target {self.target_host}:{self.target_port}")
             
@@ -49,11 +55,17 @@ class TCPProxy:
             
             # Close connections
             if target_writer:
-                target_writer.close()
-                await target_writer.wait_closed()
+                try:
+                    target_writer.close()
+                    await target_writer.wait_closed()
+                except Exception as e:
+                    logger.debug(f"Error closing target connection: {e}")
             
-            client_writer.close()
-            await client_writer.wait_closed()
+            try:
+                client_writer.close()
+                await client_writer.wait_closed()
+            except Exception as e:
+                logger.debug(f"Error closing client connection: {e}")
             
             logger.debug(f"Closed TCP connection from {client_addr}")
     
@@ -75,8 +87,9 @@ class TCPProxy:
         finally:
             try:
                 writer.close()
-            except:
-                pass
+                await writer.wait_closed()
+            except Exception as e:
+                logger.debug(f"Error closing writer in {direction}: {e}")
 
 class UDPProxy:
     """UDP proxy that forwards packets between client and target"""
@@ -86,6 +99,7 @@ class UDPProxy:
         self.target_port = target_port
         self.client_map = {}  # Maps client addresses to target sockets
         self.cleanup_task = None
+        self.max_connections = 100  # Limit concurrent UDP connections
     
     async def start(self, bind_port: int):
         """Start the UDP proxy server"""
@@ -117,6 +131,11 @@ class UDPProxy:
         logger.debug(f"Received UDP packet from {client_addr}, {len(data)} bytes")
         
         try:
+            # Check connection limit
+            if len(self.client_map) >= self.max_connections:
+                logger.warning(f"UDP connection limit reached ({self.max_connections}), dropping packet from {client_addr}")
+                return
+            
             # Get or create target socket for this client
             if client_addr not in self.client_map:
                 target_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -138,12 +157,22 @@ class UDPProxy:
     async def _listen_target_responses(self, target_sock, client_addr):
         """Listen for responses from target and forward to client"""
         try:
+            # Set socket to non-blocking mode for async operations
+            target_sock.setblocking(False)
+            
             while True:
-                data, _ = await asyncio.get_event_loop().sock_recv(target_sock, 8192)
-                
-                # Forward response back to client
-                self.transport.sendto(data, client_addr)
-                logger.debug(f"Forwarded UDP response to {client_addr}, {len(data)} bytes")
+                try:
+                    data, _ = await asyncio.get_event_loop().sock_recv(target_sock, 8192)
+                    
+                    # Forward response back to client
+                    self.transport.sendto(data, client_addr)
+                    logger.debug(f"Forwarded UDP response to {client_addr}, {len(data)} bytes")
+                except asyncio.TimeoutError:
+                    # No data received, continue listening
+                    continue
+                except (ConnectionResetError, OSError):
+                    # Target closed connection
+                    break
                 
         except Exception as e:
             logger.debug(f"Target response listener closed for {client_addr}: {e}")

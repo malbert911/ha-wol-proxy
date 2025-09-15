@@ -6,6 +6,9 @@ RUN apk add --no-cache \
     musl-dev \
     libffi-dev
 
+# Create non-root user
+RUN adduser -D -s /bin/sh wolproxy
+
 # Set working directory
 WORKDIR /app
 
@@ -17,8 +20,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY run.py .
 COPY wol_proxy/ ./wol_proxy/
 
-# Make run script executable
-RUN chmod +x run.py
+# Change ownership to non-root user
+RUN chown -R wolproxy:wolproxy /app
+
+# Switch to non-root user
+USER wolproxy
 
 # Expose default ports (will be overridden by config)
 EXPOSE 8080-8090

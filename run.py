@@ -7,6 +7,7 @@ Main entry point
 import asyncio
 import logging
 import sys
+import signal
 import yaml
 import json
 from pathlib import Path
@@ -74,19 +75,28 @@ async def main():
     # Create and start proxy server
     proxy_server = ProxyServer(config)
     
+    # Setup signal handlers for graceful shutdown
+    shutdown_event = asyncio.Event()
+    
+    def signal_handler():
+        logger.info("Received shutdown signal")
+        shutdown_event.set()
+    
+    # Register signal handlers
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        asyncio.get_event_loop().add_signal_handler(sig, signal_handler)
+    
     try:
         await proxy_server.start()
         logger.info("WOL Proxy started successfully")
         
-        # Keep the application running
-        while True:
-            await asyncio.sleep(60)
-            
-    except KeyboardInterrupt:
-        logger.info("Received shutdown signal")
+        # Wait for shutdown signal
+        await shutdown_event.wait()
+        
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
     finally:
+        logger.info("Shutting down gracefully...")
         await proxy_server.stop()
         logger.info("WOL Proxy stopped")
 

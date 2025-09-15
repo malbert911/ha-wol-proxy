@@ -11,6 +11,7 @@ options:
       mac_address: "aa:bb:cc:dd:ee:ff"    # Replace with your PC's MAC address
       wake_timeout: 60                    # Wait up to 60 seconds for wake-up
       health_check_interval: 10           # Check health every 10 seconds
+      connection_timeout: 5               # Timeout for connections to target
       protocol: "tcp"                     # TCP protocol for Ollama
     
     # Example: Plex Media Server (if you want to proxy multiple services)

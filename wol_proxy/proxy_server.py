@@ -108,6 +108,7 @@ class ProxyServer:
             
             # Create proxy and handle connection
             proxy = TCPProxy(service.target_host, service.target_port)
+            proxy.connection_timeout = service.connection_timeout
             await proxy.handle_client(client_reader, client_writer)
             
         except Exception as e:
@@ -121,7 +122,7 @@ class ProxyServer:
     async def _ensure_target_available(self, service: ServiceConfig) -> bool:
         """Ensure the target service is available, waking it up if necessary"""
         # First check if target is already available
-        if await self._check_target_availability(service.target_host, service.target_port):
+        if await self._check_target_availability(service.target_host, service.target_port, service.connection_timeout):
             return True
         
         logger.info(f"Target {service.target_host}:{service.target_port} is not available, attempting WOL")
@@ -136,11 +137,11 @@ class ProxyServer:
         
         return success
     
-    async def _check_target_availability(self, host: str, port: int) -> bool:
+    async def _check_target_availability(self, host: str, port: int, timeout: int = 5) -> bool:
         """Check if target service is available"""
         try:
             future = asyncio.open_connection(host, port)
-            reader, writer = await asyncio.wait_for(future, timeout=5)
+            reader, writer = await asyncio.wait_for(future, timeout=timeout)
             writer.close()
             await writer.wait_closed()
             return True
@@ -158,7 +159,8 @@ class ProxyServer:
             try:
                 is_available = await self._check_target_availability(
                     service.target_host, 
-                    service.target_port
+                    service.target_port,
+                    service.connection_timeout
                 )
                 
                 # Update status

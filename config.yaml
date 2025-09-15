@@ -31,5 +31,6 @@ schema:
       mac_address: "str"
       wake_timeout: "int(30,300)?"
       health_check_interval: "int(1,60)?"
+      connection_timeout: "int(1,60)?"
       protocol: "list(tcp|udp)?"
 image: "ghcr.io/malbert911/ha-wol-proxy-{arch}"
