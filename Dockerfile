@@ -6,9 +6,6 @@ RUN apk add --no-cache \
     musl-dev \
     libffi-dev
 
-# Create non-root user
-RUN adduser -D -s /bin/sh wolproxy
-
 # Set working directory
 WORKDIR /app
 
@@ -20,11 +17,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY run.py .
 COPY wol_proxy/ ./wol_proxy/
 
-# Change ownership to non-root user
-RUN chown -R wolproxy:wolproxy /app
-
-# Switch to non-root user
-USER wolproxy
+# Home Assistant add-ons need to run as root to access /data/options.json
+# But we can still improve security by setting proper file permissions
+RUN chmod 755 /app && \
+    chmod 644 /app/*.py && \
+    chmod -R 644 /app/wol_proxy/
 
 # Expose default ports (will be overridden by config)
 EXPOSE 8080-8090
