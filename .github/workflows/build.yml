@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [amd64, arm64, armv7]
+        arch: [amd64, arm64]
     
     steps:
     - name: Checkout repository
@@ -89,7 +89,6 @@ jobs:
         for tag in $(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ' '); do
           docker manifest create $tag \
             $tag-amd64 \
-            $tag-arm64 \
-            $tag-armv7
+            $tag-arm64
           docker manifest push $tag
         done
