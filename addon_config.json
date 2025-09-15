@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "slug": "wol-proxy",
   "url": "https://github.com/malbert911/ha-wol-proxy",
-  "arch": ["amd64", "armv7", "aarch64"],
+  "arch": ["amd64", "aarch64"],
   "startup": "services",
   "boot": "auto",
   "init": false,
@@ -31,5 +31,5 @@
       }
     ]
   },
-  "image": "ghcr.io/malbert911/ha-wol-proxy"
+  "image": "ghcr.io/malbert911/ha-wol-proxy-{arch}"
 }
