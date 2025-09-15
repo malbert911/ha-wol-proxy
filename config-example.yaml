@@ -1,0 +1,30 @@
+# Example configuration for development/testing
+# This file shows how to configure the WOL Proxy for your Ollama server
+
+options:
+  log_level: "debug"
+  services:
+    # Ollama AI Service
+    - target_host: "192.168.1.100"        # Replace with your gaming PC IP
+      target_port: 11434                  # Ollama default port
+      proxy_port: 11434                   # Port the proxy will listen on
+      mac_address: "aa:bb:cc:dd:ee:ff"    # Replace with your PC's MAC address
+      wake_timeout: 60                    # Wait up to 60 seconds for wake-up
+      health_check_interval: 10           # Check health every 10 seconds
+      protocol: "tcp"                     # TCP protocol for Ollama
+    
+    # Example: Plex Media Server (if you want to proxy multiple services)
+    # - target_host: "192.168.1.100"
+    #   target_port: 32400
+    #   proxy_port: 32400
+    #   mac_address: "aa:bb:cc:dd:ee:ff"
+    #   protocol: "tcp"
+    
+    # Example: Custom UDP service
+    # - target_host: "192.168.1.101"
+    #   target_port: 9999
+    #   proxy_port: 9999
+    #   mac_address: "11:22:33:44:55:66"
+    #   protocol: "udp"
+    #   wake_timeout: 90
+    #   health_check_interval: 15

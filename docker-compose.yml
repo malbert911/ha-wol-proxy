@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  wol-proxy:
+    build: .
+    container_name: wol-proxy-dev
+    network_mode: host
+    volumes:
+      - ./config-example.yaml:/data/options.json:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    
+    # For development, you might want to override the command
+    # command: ["python", "-u", "test_dev.py"]

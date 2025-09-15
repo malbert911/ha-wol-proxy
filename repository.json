@@ -1,0 +1,8 @@
+{
+  "name": "WOL Proxy",
+  "content_in_root": false,
+  "filename": "wol-proxy",
+  "hide_default_branch": false,
+  "render_readme": true,
+  "homeassistant": "2023.3.0"
+}

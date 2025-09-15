@@ -1,0 +1,35 @@
+name: "WOL Proxy"
+description: "A proxy service that can wake up sleeping devices using Wake-on-LAN"
+version: "1.0.0"
+slug: wol-proxy
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+init: false
+hassio_api: true
+hassio_role: default
+homeassistant_api: false
+host_network: true
+privileged:
+  - NET_ADMIN
+ports:
+  9/udp: 9
+ports_description:
+  9/udp: "Wake-on-LAN packets (optional)"
+options:
+  log_level: "info"
+  services: []
+schema:
+  log_level: "list(trace|debug|info|notice|warning|error|fatal)"
+  services:
+    - target_host: "str"
+      target_port: "int"
+      proxy_port: "int"
+      mac_address: "str"
+      wake_timeout: "int(30,300)?"
+      health_check_interval: "int(5,60)?"
+      protocol: "list(tcp|udp)?"
+image: "ghcr.io/malbert911/ha-wol-proxy-{arch}"
