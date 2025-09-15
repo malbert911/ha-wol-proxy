@@ -16,7 +16,7 @@ class ServiceConfig:
     proxy_port: int
     mac_address: str
     wake_timeout: int = 60
-    health_check_interval: int = 10
+    health_check_interval: int = 2
     protocol: str = "tcp"
     
     def __post_init__(self):
@@ -44,8 +44,8 @@ class ServiceConfig:
         if not (30 <= self.wake_timeout <= 300):
             raise ValueError("wake_timeout must be between 30 and 300 seconds")
         
-        if not (5 <= self.health_check_interval <= 60):
-            raise ValueError("health_check_interval must be between 5 and 60 seconds")
+        if not (1 <= self.health_check_interval <= 60):
+            raise ValueError("health_check_interval must be between 1 and 60 seconds")
 
 class Config:
     """Main configuration class"""
