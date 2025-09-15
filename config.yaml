@@ -1,6 +1,6 @@
 name: "WOL Proxy"
 description: "Wake-on-LAN proxy for sleeping devices"
-version: "1.0.1"
+version: "1.0.2"
 slug: wol-proxy
 url: "https://github.com/malbert911/ha-wol-proxy"
 arch:
